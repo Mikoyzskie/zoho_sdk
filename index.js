@@ -147,7 +147,7 @@ class Record {
     }
 
     try {
-      let moduleAPIName = "Calls";
+      let moduleAPIName = "Leads";
 
       //Get instance of RecordOperations Class
       let recordOperations = new RecordOperations();
@@ -200,7 +200,7 @@ class Record {
 
               //Get the createdBy User instance of each Record
               let createdBy = record.getCreatedBy();
-              const createdData = null;
+              let createdData = null;
 
               //Check if createdBy is not null
               if (createdBy != null) {
@@ -252,14 +252,14 @@ class Record {
 
               let keyArray = Array.from(keyValues.keys());
 
-              const values = [];
+              const values = {};
 
               for (let keyIndex = 0; keyIndex < keyArray.length; keyIndex++) {
                 const keyName = keyArray[keyIndex];
 
                 let value = keyValues.get(keyName);
 
-                values.push(keyName + " : " + value);
+                values[keyName] = value;
               }
 
               recordData.push({
@@ -271,11 +271,13 @@ class Record {
                 values,
               });
             }
+
+            console.log(recordData);
           }
         }
       }
     } catch (error) {
-      throw new Error(`Error: ${error}`);
+      console.log(error);
     }
   }
 }
