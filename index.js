@@ -35,38 +35,15 @@ const ProxyBuilder =
 
 class Record {
   static async getRecords() {
-    /*
-     * Create an instance of Logger Class that takes two parameters
-     * level -> Level of the log messages to be logged. Can be configured by typing Levels "." and choose any level from the list displayed.
-     * filePath -> Absolute file path, where messages need to be logged.
-     */
     let logger = new LogBuilder()
       .level(Levels.INFO)
       .filePath(`${__dirname}/node_sdk_log.log`)
       .build();
 
-    //   /Users/myke/Desktop/kpi-dash/zoho-sdk/zoho-crm-node-js-example
-    /*
-     * Create an UserSignature instance that takes user Email as parameter
-     */
     let user = new UserSignature("myk.e@zanda.com.au");
 
-    /*
-     * Configure the environment
-     * which is of the pattern Domain.Environment
-     * Available Domains: USDataCenter, EUDataCenter, INDataCenter, CNDataCenter, AUDataCenter
-     * Available Environments: PRODUCTION(), DEVELOPER(), SANDBOX()
-     */
     let environment = USDataCenter.PRODUCTION();
 
-    /*
-     * Create a Token instance
-     * clientId -> OAuth client id.
-     * clientSecret -> OAuth client secret.
-     * grantToken -> OAuth Grant Token.
-     * refreshToken -> OAuth Refresh Token token.
-     * redirectURL -> OAuth Redirect URL.
-     */
     let token = new OAuthBuilder()
       .clientId("1000.AF26FNU7GR4GVB0R2S6CTKLJ8S55NQ")
       .clientSecret("9262493f2c4e34ed55a749632492fdce5984386afe")
@@ -76,14 +53,6 @@ class Record {
       .redirectURL("http:/localhost:3000")
       .build();
 
-    /*
-     * Create an instance of TokenStore.
-     * 1 -> DataBase host name. Default "localhost"
-     * 2 -> DataBase name. Default "zohooauth"
-     * 3 -> DataBase user name. Default "root"
-     * 4 -> DataBase password. Default ""
-     * 5 -> DataBase port number. Default "3306"
-     */
     let tokenstore = new DBBuilder()
       .host("localhost")
       .databaseName("zohooauth")
@@ -93,45 +62,15 @@ class Record {
       .password("")
       .build();
 
-    /*
-     * Create an instance of FileStore that takes absolute file path as parameter
-     */
     let store = new FileStore(`${__dirname}/nodejs_sdk_tokens.txt`);
 
-    // /Users/myke/Desktop/kpi-dash/zoho-sdk/zoho-crm-node-js-example
-
-    /*
-     * A Boolean value to allow or prevent auto-refreshing of the modules' fields in the background.
-     * if true - all the modules' fields will be auto-refreshed in the background whenever there is any change.
-     * if false - the fields will not be auto-refreshed in the background. The user can manually delete the file(s) or the specific module's fields using methods from ModuleFieldsHandler
-     */
     let sdkConfig1 = new SDKConfigBuilder()
       .autoRefreshFields(true)
       .pickListValidation(true)
       .build();
 
-    /*
-     * The path containing the absolute directory path to store user specific JSON files containing module fields information.
-     */
     let resourcePath = `${__dirname}`;
-    //   "/Users/myke/Desktop/kpi-dash/zoho-sdk/zoho-crm-node-js-example";
 
-    // let requestProxy = new ProxyBuilder()
-    // .host("proxyHost")
-    // .port("proxyPort")
-    // .user("proxyUser")
-    // .password("password")
-    // .build();
-    /*
-     * Call the static initialize method of Initializer class that takes the following arguments
-     * user -> UserSignature instance
-     * environment -> Environment instance
-     * token -> Token instance
-     * store -> TokenStore instance
-     * SDKConfig -> SDKConfig instance
-     * resourcePath -> resourcePath
-     * logger -> Logger instance
-     */
     try {
       (await new InitializeBuilder())
         .user(user)
@@ -147,7 +86,7 @@ class Record {
     }
 
     try {
-      let moduleAPIName = "Leads";
+      let moduleAPIName = "Calls";
 
       //Get instance of RecordOperations Class
       let recordOperations = new RecordOperations();
@@ -157,17 +96,18 @@ class Record {
       await paramInstance.add(GetRecordsParam.APPROVED, "both");
 
       let headerInstance = new HeaderMap();
-
+      const today = new Date();
+      console.log(today.getDate());
       await headerInstance.add(
         GetRecordsHeader.IF_MODIFIED_SINCE,
-        new Date("2020-01-01T00:00:00+05:30")
+        new Date(today.getDay())
       );
 
       //Call getRecords method that takes paramInstance, headerInstance and moduleAPIName as parameters
       let response = await recordOperations.getRecords(
         moduleAPIName,
-        paramInstance,
-        headerInstance
+        paramInstance
+        // headerInstance
       );
 
       if (response != null) {
@@ -195,29 +135,17 @@ class Record {
             for (let index = 0; index < records.length; index++) {
               let record = records[index];
 
-              //Get the ID of each Record
-              // console.log("Record ID: " + record.getId());
-
-              //Get the createdBy User instance of each Record
               let createdBy = record.getCreatedBy();
               let createdData = null;
 
-              //Check if createdBy is not null
               if (createdBy != null) {
-                //Get the ID of the createdBy User
-
                 createdData = {
                   id: createdBy.getId(),
                   name: createdBy.getName(),
                   email: createdBy.getEmail(),
                   dateCreated: record.getCreatedTime(),
                 };
-
-                // console.log(data);
               }
-
-              //Get the CreatedTime of each Record
-              // console.log("Record CreatedTime: " + record.getCreatedTime());
 
               //Get the modifiedBy User instance of each Record
               let modifiedBy = record.getModifiedBy();
@@ -233,10 +161,6 @@ class Record {
                 };
               }
 
-              //Get the ModifiedTime of each Record
-              // console.log("Record ModifiedTime: " + record.getModifiedTime());
-
-              //Get the list of Tag instance each Record
               let tags = record.getTag();
               const tagsData = [];
 
@@ -262,6 +186,11 @@ class Record {
                 values[keyName] = value;
               }
 
+              if (
+                new Date(record.getCreatedTime()).getDate() == today.getDate()
+              ) {
+                continue;
+              }
               recordData.push({
                 id: record.getId(),
                 date: record.getCreatedTime(),
